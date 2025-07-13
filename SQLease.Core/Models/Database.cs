@@ -4,6 +4,7 @@ public class Database
 {
     private readonly Dictionary<string, Table> _tables = new(StringComparer.OrdinalIgnoreCase);
     public IReadOnlyDictionary<string, Table> Tables => _tables;
+    private const string DeletedColumnName = "__Deleted";
 
     public void CreateTable(string tableName, Dictionary<string, Type> columns)
     {
@@ -19,6 +20,8 @@ public class Database
         {
             table.AddColumn(column.Key, column.Value);
         }
+
+        table.AddDeletedColumn(DeletedColumnName);
         
         // Add the table against the table name
         _tables.Add(tableName, table);

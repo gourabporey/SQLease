@@ -1,55 +1,42 @@
 using Microsoft.Data.Analysis;
+using SQLease.Core.Storage;
 
 namespace SQLease.Core.Models;
 
 public class Table(string name)
 {
-    public string Name { get; set; } = name;
-    private List<Column> Columns { get; set; } = [];
-    private readonly DataFrame _dataFrame = new();
-    private readonly Dictionary<string, Type> _columnTypes = new();
+    public string Name { get; } = name;
+    private List<Column> Columns { get; } = [];
+    private readonly ITableStorage _storage = new DataFrameTableStorage();
 
-    public void AddColumn(string columnName, Type dataType)
+    public void AddColumn(string name, Type type)
     {
-        if (_columnTypes.ContainsKey(columnName))
-            throw new InvalidOperationException($"Column {columnName} already exists");
-        
-        var column = new Column(columnName, dataType);
-        Columns.Add(column);
-        _columnTypes.Add(columnName, dataType);
-
-        DataFrameColumn dataFrameColumn = dataType switch
-        {
-            _ when dataType == typeof(int) => new Int32DataFrameColumn(columnName),
-            _ when dataType == typeof(double) => new DoubleDataFrameColumn(columnName),
-            _ when dataType == typeof(DateTime) => new DateTimeDataFrameColumn(columnName),
-            _ when dataType == typeof(bool) => new BooleanDataFrameColumn(columnName),
-            _ when dataType == typeof(string) => new StringDataFrameColumn(columnName),
-            _ => new StringDataFrameColumn(columnName),
-        };
-        
-        _dataFrame.Columns.Add(dataFrameColumn);
+        Columns.Add(new Column(name, type));
+        _storage.AddColumn(name, type);
     }
 
-    public void InsertRow(Dictionary<string, object?> rowData)
+    public void AddDeletedColumn(string columnName)
     {
-        List<object> values = [];
-        
-        foreach (var column in Columns)
+        _storage.AddDeletedColumn(columnName);
+    }
+
+    public void InsertRow(Dictionary<string, object?> row) => _storage.InsertRow(row);
+
+    public void PrintAllRows()
+    {
+        foreach (var row in _storage.GetAllRows())
         {
-            if (!rowData.TryGetValue(column.Name, out var value))
-                throw new InvalidOperationException($"Column {column.Name} does not exist");
-            
-            if (column.DataType != value?.GetType())
-                throw new InvalidOperationException($"Column {column.Name} data type does not match");
-            
-            values.Add(value);
+            Console.WriteLine(string.Join(", ", row.Select(kv => $"{kv.Key}: {kv.Value}")));
         }
-        
-        _dataFrame.Append(values.ToArray(), inPlace: true);
     }
+
+    public int UpdateRows(Func<Dictionary<string, object?>, bool> predicate, Dictionary<string, object?> updates)
+        => _storage.UpdateRows(predicate, updates);
+
+    public int DeleteRows(Func<Dictionary<string, object?>, bool> predicate)
+        => _storage.DeleteRows(predicate);
+
+    public void Compact() => _storage.Compact();
     
-    public void PrintAllRows() => Console.WriteLine(_dataFrame);
-    
-    public DataFrame GetDataFrame() => _dataFrame;
+    public IReadOnlyList<Column> GetColumns() => Columns;
 }
