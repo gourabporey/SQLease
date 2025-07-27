@@ -1,6 +1,6 @@
 using SQLease.Core.Storage;
 
-namespace SQLease.Tests.Storage;
+namespace SQLease.Tests.SQLease.Core.Storage;
 
 public class DataFrameTableStorageTests
 {
