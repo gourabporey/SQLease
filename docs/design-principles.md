@@ -171,3 +171,23 @@ These principles are not style preferences. They reflect engineering decisions t
 **In SQLease:** The current naming is largely good. `ITableStorage`, `DataFrameTableStorage`, `DeleteRows`, `Compact`, `GetAllRows` are all readable. Areas for improvement: `Class1.cs` in stub projects should be replaced with meaningful names the moment any real code is added.
 
 **When exceptions are acceptable:** Performance-critical inner loops sometimes sacrifice readability for speed. This is acceptable only when the performance need is demonstrated and the critical section is clearly bounded and documented.
+
+---
+
+## 13. Decision Framework
+
+When multiple implementation options exist, evaluate them in this order. An option that fails an earlier step cannot be rescued by performing well on a later one.
+
+| Step                     | Question                                                                         |
+| ------------------------ | -------------------------------------------------------------------------------- |
+| 1. Correctness           | Does this produce accurate results for all valid inputs and reject invalid ones? |
+| 2. Existing architecture | Does this fit within the current layer boundaries and interfaces?                |
+| 3. Simplicity            | Is there a simpler approach that satisfies steps 1 and 2?                        |
+| 4. Testability           | Can behaviour be verified in isolation without complex test setup?               |
+| 5. Maintainability       | Will a future contributor understand this without additional context?            |
+| 6. Extensibility         | Will this allow predictable extension without requiring a rewrite?               |
+| 7. Performance           | Is this measurably faster, and is that improvement worth the added complexity?   |
+
+If options are equivalent through step 6, choose the higher-performing option only if the complexity cost is zero or near-zero.
+
+Prefer consistency with the existing codebase unless there is a compelling architectural reason not to. Deliberate deviation requires a comment or commit note explaining the rationale.

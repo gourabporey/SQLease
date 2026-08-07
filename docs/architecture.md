@@ -8,10 +8,10 @@ This document describes the architecture of SQLease: how the system is structure
 
 SQLease is designed as a layered pipeline that transforms SQL text into data operations. The architecture prioritises these properties:
 
-- **Strict layer separation.** Each layer depends only on layers below it and communicates through defined interfaces.
-- **Independent testability.** Every layer can be tested without instantiating the layers above or below it.
-- **Incremental buildability.** The system does not need to be complete to be useful; each layer can be developed and validated independently.
-- **Minimal coupling.** Concrete implementations are hidden behind interfaces; callers depend on contracts, not on classes.
+- **Strict layer separation.**
+- **Independent testability.**
+- **Incremental buildability.**
+- **Minimal coupling.**
 
 ---
 

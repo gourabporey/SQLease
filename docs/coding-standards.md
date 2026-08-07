@@ -1,6 +1,6 @@
 # SQLease — Coding Standards
 
-This document defines engineering quality expectations for code written in this repository. The focus is on structure, behaviour, and intent rather than language syntax. These standards apply to all code additions and modifications.
+This document defines engineering quality expectations for code written in this repository.
 
 ---
 
@@ -10,11 +10,11 @@ Names are the primary mechanism for communicating intent. A good name eliminates
 
 ### Principles
 
-- **Names describe purpose, not implementation.** `GetAllRows()` describes what is returned. `IterateDataFrame()` describes how it is done internally — do not leak the implementation into the name.
-- **Names use domain language.** Use terms from the database domain: `table`, `row`, `column`, `schema`, `predicate`, `catalog`, `compact`. Avoid generic terms like `manager`, `handler`, `processor`, `helper`, `utils`.
+- **Names describe purpose, not implementation.**
+- **Names use domain language.**
 - **Names are as long as necessary, but no longer.** `UpdateRows` is clear. `UpdateAllRowsInTheStorageBackend` is not clearer, just noisier.
 - **Booleans are affirmative predicates.** `includeDeleted`, `isNullable`, `tableExists`. Not `noDeleted`, `notNullable`.
-- **Interfaces are named for the role they play.** `ITableStorage` names the role: something that stores table data. Do not prefix with `I` and then choose a vague name like `IManager`.
+- **Interfaces are named for the role they play.**
 
 ### Consistency
 
@@ -29,8 +29,8 @@ Names are the primary mechanism for communicating intent. A good name eliminates
 
 ### Guidelines
 
-- Methods that exceed twenty lines are worth reviewing. They may be doing too much.
-- Methods that require two levels of nested conditionals or loops are worth simplifying.
+- Methods that exceed 20 lines are worth reviewing. They may be doing too much.
+- Methods that require 2 levels of nested conditionals or loops are worth simplifying.
 - Helper methods extracted from a single caller are acceptable when they improve readability or allow independent testing.
 - Do not extract methods purely to reduce line count if the extraction adds no clarity.
 
@@ -42,12 +42,12 @@ Names are the primary mechanism for communicating intent. A good name eliminates
 
 ## 3. Class Responsibilities
 
-**Each class has one reason to change.** If a change to the schema model and a change to the storage format both require modifications to the same class, that class has more than one responsibility.
+**Each class has one reason to change.**
 
 ### Guidelines
 
-- Classes in `Models/` are data containers or domain entities. They should not contain I/O, formatting, or storage logic.
-- Classes in `Storage/` are responsible for physical data manipulation. They should not contain business rules or domain logic.
+- Classes in `Models/` are data containers or domain entities.
+- Classes in `Storage/` are responsible for physical data manipulation.
 - Classes in `CLI/` are responsible for input parsing (not SQL parsing) and output formatting. They should not call storage directly.
 - Test classes test exactly one subject class. Do not share test classes across multiple subjects.
 
@@ -64,10 +64,10 @@ Public APIs are commitments. Once callers exist, breaking changes impose cost on
 
 ### Guidelines
 
-- **Minimise surface area.** Expose only what callers need. Members that should not be called externally must be `private` or `internal`, not `public` by default.
-- **Design the API before the implementation.** Write the method signature and its test before writing the body. This keeps the interface honest.
+- **Minimise surface area.** Expose only what callers need.
+- **Design the API before the implementation.** Write the method signature and its test before writing the body.
 - **Return types should reflect intent.** `GetAllRows()` returns `IEnumerable<Dictionary<string, object?>>`. This is acceptable today but should eventually return a typed result object that does not expose internal implementation details (dictionaries are mutable and untyped).
-- **Do not expose internal state.** `_tables` is correctly `private` with a `IReadOnlyDictionary` property on `Database`. Follow this pattern everywhere.
+- **Do not expose internal state.** `_tables` is correctly `private` with a `IReadOnlyDictionary` property on `Database`.
 - **Method parameters that act as output should be avoided.** Prefer returning a result object over `out` parameters.
 
 ---
@@ -78,15 +78,15 @@ Code should communicate its intent through names and structure. Comments are for
 
 ### When to write a comment
 
-- A constraint exists that is not obvious from the code. Example: "Rows must be appended in schema order because DataFrame.Append is position-sensitive."
-- A non-obvious design decision was made. Example: "Tombstone-based deletion is used here to support future compaction without structural mutations."
+- A constraint exists that is not obvious from the code.
+- A non-obvious design decision was made.
 - A known deficiency exists and cannot be fixed immediately. Mark it with a `// TODO:` comment that explains the problem and the intended fix.
 
 ### When not to write a comment
 
-- Do not restate what the code does. `// Insert the row` above `_storage.InsertRow(row)` adds no information.
-- Do not write apology comments. `// This is a bit hacky but...` — fix it or document the constraint that prevents fixing it.
-- Do not write historical comments. Source control tracks history.
+- Do not restate what the code does.
+- Do not write apology comments.
+- Do not write historical comments.
 
 ### TODO comments
 
@@ -111,9 +111,9 @@ Errors fall into two categories: expected failures from external input and unexp
 
 ### Expected failures
 
-- Invalid SQL syntax, missing columns in an insert, and duplicate table names are expected failures. They arise from user-provided input and should be communicated as clear, actionable messages.
+- Invalid SQL syntax, missing columns in an insert, and duplicate table names are expected failures.
 - Use typed exceptions (`InvalidOperationException`, `ArgumentException`) with descriptive messages that name the offending input. "Table Users already exists" is correct. "Error" is not.
-- Do not swallow exceptions. A caught exception that is not handled or rethrown hides failures.
+- Do not swallow exceptions.
 
 ### Unexpected failures
 
@@ -122,8 +122,8 @@ Errors fall into two categories: expected failures from external input and unexp
 
 ### What not to do
 
-- Do not use exceptions for control flow. `try`/`catch` is not an `if` statement.
-- Do not return null from a method that could return a valid empty result. Return an empty collection instead of null.
+- Do not use exceptions for control flow.
+- Do not return null from a method that could return a valid empty result.
 - Do not throw generic `Exception` with a string message. Use the most specific exception type that describes the failure.
 
 ---
@@ -146,7 +146,7 @@ Dependencies are liabilities as well as assets. Every external library is a secu
 ### Guidelines
 
 - **Add dependencies with justification.** Before introducing a new NuGet package, confirm that the functionality is not already available in the standard library or in an existing dependency.
-- **Keep dependencies at their appropriate layer.** `Microsoft.Data.Analysis` belongs in `SQLease.Core` because it is used only in `DataFrameTableStorage`. It must not appear in `SQLease.Engine`, `SQLease.CLI`, or `SQLease.Tests` directly.
+- **Keep dependencies at their appropriate layer.**
 - **Use the minimum required version.** Do not pull in a large framework when a small, focused library suffices.
 - **Test dependencies belong in test projects only.** xUnit, Moq, and coverlet must not appear as references in production projects.
 
@@ -166,9 +166,9 @@ An abstraction earns its existence by serving two or more concrete uses or by is
 
 ### Guidelines
 
-- **Do not create an interface for a concept that has only one implementation and no test double.** A second implementation or a test double is evidence that the abstraction is useful.
-- **Interfaces should be narrow.** An interface with twelve methods is likely combining multiple responsibilities. Prefer interfaces that describe a single coherent capability.
-- **Prefer concrete types internally.** Within a module, concrete types are fine. Abstractions are for boundaries.
+- **Do not create an interface for a concept that has only one implementation and no test double.**
+- **Interfaces should be narrow.**
+- **Prefer concrete types internally.**
 - **Do not hide simplicity.** A one-line operation does not need a wrapping service class.
 
 ### In SQLease
@@ -179,21 +179,21 @@ An abstraction earns its existence by serving two or more concrete uses or by is
 
 ## 10. Code Duplication
 
-Duplication of knowledge — not code — is the real problem. Two `for` loops that happen to look similar are not necessarily a problem. Two places that encode "the deleted column is called `__Deleted`" are a problem.
+Duplication of knowledge — not code — is the real problem.
 
 ### Guidelines
 
-- **Do not deduplicate code that changes for different reasons.** Two similar-looking methods that will diverge as requirements change should not share an implementation.
-- **Do deduplicate knowledge.** If a constraint, a constant, or a rule appears in two places, one should be derived from the other or both should reference a shared authoritative definition.
-- **Constants belong close to the concept they name.** `DeletedColumnName` is currently in `Database`. The constant should be in `DataFrameTableStorage` or in a shared schema constants type, because the storage layer is the one that must enforce it.
+- **Do not deduplicate code that changes for different reasons.**
+- **Do deduplicate knowledge.**
+- **Constants belong close to the concept they name.**
 
 ---
 
 ## 11. Configuration
 
-- **Do not hardcode values that might change between environments.** Connection strings, file paths, and timeouts are configuration, not code.
-- **Do not use magic strings for structural names.** `"__Deleted"`, `"Username"`, `"Email"` are examples of structural names. The first is an internal constant; the second two are user-provided data. They should be handled differently.
-- **Constants are preferable to literals.** `private const string DeletedColumnName = "__Deleted"` is correct. Scattering `"__Deleted"` throughout the codebase is not.
+- **Do not hardcode values that might change between environments.**
+- **Do not use magic strings for structural names.**
+- **Constants are preferable to literals.**
 
 ---
 
